@@ -1,0 +1,5 @@
+Condition,"Training Set (RMSE, R²)","Test Set (RMSE, R²)",Best Parameters
+Code 0 (Clear),"RMSE: 0.3317, R²: 0.9928","RMSE: 0.8714, R²: 0.9366","Max tree depth: None, Min samples to split: 2, Number of trees: 200"
+Code 3 (Dust Storm),"RMSE: 1.3694, R²: 0.9758","RMSE: 0.8446, R²: 0.9527","Max tree depth: None, Min samples to split: 2, Number of trees: 200"
+Code 4 (Fog),"RMSE: 0.8103, R²: 0.9496","RMSE: 0.8809, R²: 0.9576","Max tree depth: None, Min samples to split: 2, Number of trees: 200"
+Code 5 (Drizzle),"RMSE: 1.4367, R²: 0.9385","RMSE: 0.8066, R²: 0.9556","Max tree depth: None, Min samples to split: 2, Number of trees: 200"

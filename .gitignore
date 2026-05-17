@@ -1,0 +1,21 @@
+# Data files
+RFLFSODataFull.csv
+*.csv
+!results/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Java scratch files
+*.class
+archive/java_practice_scratch/

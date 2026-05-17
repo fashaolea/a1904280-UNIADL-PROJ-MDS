@@ -1,36 +1,61 @@
-# RF and FSO Attenuation Prediction
+# Weather-Aware Attenuation Modelling for Hybrid FSO/RF Links
 
-This project is about predicting RF and FSO link attenuation using weather and link-related data. I used the `RFLFSODataFull.csv` dataset and tried different random forest models to see how well `RFL_Att` and `FSO_Att` can be predicted under different weather conditions.
+This project models signal attenuation in hybrid Free-Space Optical (FSO) and Radio Frequency (RF) communication links under different weather conditions. It uses measured weather and channel data to predict `FSO_Att` and `RFL_Att`, then compares generic, weather-specific, and cascade modelling strategies.
 
-The work started from basic data exploration, then moved into feature selection, general models, weather-specific models, and finally cascade models where I tested whether RF and FSO predictions could help each other.
+The work was developed as part of a University of Adelaide Master of Data Science project.
 
-## Files
+## Project Highlights
 
-| File | What it is for |
-| --- | --- |
-| `code.ipynb` | My first main notebook. It includes data checking, preprocessing, feature selection, random forest modelling, and early weather-based experiments. |
-| `code2.ipynb` | A follow-up notebook where I continued testing the feature-selection process and model performance. |
-| `generic model revised edition.ipynb` | A cleaner version of the general modelling workflow. I organised the code into reusable functions and added per-weather evaluation. |
-| `code3.ipynb` | The final modelling notebook. It includes the RF to FSO and FSO to RF cascade experiments, plus correlation, mutual information, and heatmap analysis. |
+- Built Random Forest regression models for RF and FSO attenuation prediction.
+- Compared generic models with weather-specific models grouped by `SYNOPCode`.
+- Developed RF-to-FSO and FSO-to-RF cascade experiments, where one channel prediction is used as an additional feature for the other channel.
+- Evaluated model performance with RMSE, R-squared, Pearson correlation, and mutual information.
+- Visualised prediction behaviour with feature-importance plots and measured-vs-predicted 2D density heatmaps.
+- Analysed model behaviour across 7 weather categories, including low-sample extreme-weather conditions such as duststorm, fog, and snow.
+
+## Repository Structure
+
+```text
+.
+|-- README.md
+|-- requirements.txt
+|-- .gitignore
+|-- notebooks/
+|   |-- 01_data_exploration_and_generic_model.ipynb
+|   |-- 02_feature_selection_and_weather_models.ipynb
+|   |-- 03_revised_generic_rf_model.ipynb
+|   |-- 04_cascade_rf_fso_model.ipynb
+|-- src/
+|   |-- data_preprocessing.py
+|   |-- feature_selection.py
+|   |-- train_model.py
+|   |-- evaluate.py
+|-- results/
+|   |-- model_performance_report.csv
+|   |-- figures/
+|-- archive/
+|   |-- experimental_joint_model_text5_3.ipynb
+|   |-- scratch_import_pandas.py
+```
 
 ## Dataset
 
-The dataset file should be placed in the root folder of the project with this name:
+The notebooks and scripts expect a CSV file named:
 
 ```text
 RFLFSODataFull.csv
 ```
 
-I did not include the CSV file in the repository because it is a large dataset file.
+Place it in the project root before running the notebooks or scripts.
 
-The dataset I used has:
+The local dataset used during development contains:
 
 - 91,379 rows
 - 27 columns
-- two target columns: `FSO_Att` and `RFL_Att`
-- weather labels stored in `SYNOPCode`
+- Two target variables: `FSO_Att` and `RFL_Att`
+- Weather-category labels in `SYNOPCode`
 
-Some of the main columns are:
+Main columns include:
 
 ```text
 FSO_Att, RFL_Att, AbsoluteHumidity, Distance, Frequency, Particulate,
@@ -38,7 +63,7 @@ RainIntensity, RelativeHumidity, SYNOPCode, Temperature, Time,
 Visibility, WindDirection, WindSpeed
 ```
 
-The `SYNOPCode` values are used to separate the data into weather conditions:
+Weather groups used in the experiments:
 
 | SYNOPCode | Weather condition | Samples |
 | --- | --- | ---: |
@@ -50,55 +75,25 @@ The `SYNOPCode` values are used to separate the data into weather conditions:
 | 7 | Snow | 419 |
 | 8 | Showers | 1,716 |
 
-This imbalance was one of the reasons I checked model performance separately for each weather type.
+Because several extreme-weather groups have limited samples, their results should be interpreted as scenario-specific experimental evidence rather than broad production-grade robustness claims.
 
-## What I Tried
+## Methods
 
-The main model I used was `RandomForestRegressor`. I chose it because it works well with tabular data and can also give feature importance, which was useful for deciding which variables to keep.
+The modelling workflow includes:
 
-The general workflow was:
+1. Data loading, duplicate checks, and feature preparation.
+2. Generic Random Forest regression for `RFL_Att` and `FSO_Att`.
+3. Feature selection based on Random Forest feature importance.
+4. Hyperparameter tuning with `GridSearchCV` and `RandomizedSearchCV`.
+5. Weather-specific training and evaluation by `SYNOPCode`.
+6. Cascade modelling:
+   - RF -> FSO: predicted RF attenuation is used as an additional FSO feature.
+   - FSO -> RF: predicted FSO attenuation is used as an additional RF feature.
+7. Evaluation using RMSE, R-squared, Pearson correlation, mutual information, and 2D heatmap visualisation.
 
-- load the RF/FSO dataset
-- check data shape, data types, duplicates, and missing values
-- separate the targets `FSO_Att` and `RFL_Att`
-- use random forest feature importance to remove less useful features
-- tune model parameters with `GridSearchCV` or `RandomizedSearchCV`
-- compare results using RMSE and R2
-- evaluate models under different `SYNOPCode` weather groups
-- test cascade models to see whether RF and FSO predictions are related
+## Results Summary
 
-## Feature Selection
-
-A big part of the project was deciding which features were actually useful. At first I used many columns, but that made the model harder to explain. Later I used a step-by-step feature removal process and watched whether RMSE or R2 became worse.
-
-For FSO attenuation, the final useful features in the revised general model were:
-
-```text
-Distance, Temperature, Visibility
-```
-
-For RF attenuation, the revised general model kept:
-
-```text
-AbsoluteHumidity, RainIntensity
-```
-
-In the final cascade notebook, I used a slightly larger selected feature set because the goal was to compare RF/FSO relationships under each weather condition.
-
-## Final Cascade Experiments
-
-In `code3.ipynb`, I tested two directions:
-
-- RF to FSO: predict RF attenuation first, then model FSO attenuation
-- FSO to RF: predict FSO attenuation first, then model RF attenuation
-
-I added this part because RF and FSO links are both affected by weather, but not always in the same way. I wanted to check whether one channel could provide useful information for the other.
-
-I also used Pearson correlation, mutual information, and heatmaps because RMSE and R2 only show prediction error. The extra analysis helped me compare whether the predicted RF/FSO relationship looked similar to the measured relationship.
-
-## Results
-
-In the final RF to FSO cascade experiment, the results were:
+The final cascade notebook reports the following weather-specific test performance for the RF -> FSO experiment:
 
 | Weather | RF RMSE | RF R2 | FSO RMSE | FSO R2 |
 | --- | ---: | ---: | ---: | ---: |
@@ -110,43 +105,47 @@ In the final RF to FSO cascade experiment, the results were:
 | Snow | 0.603 | 0.804 | 1.023 | 0.961 |
 | Showers | 1.054 | 0.870 | 1.423 | 0.863 |
 
-Overall, the models performed reasonably well, but the results were not equally strong for every weather condition. Smaller weather groups such as Duststorm, Fog, and Snow were harder to rely on because they had much fewer samples.
+The reverse FSO -> RF cascade experiment reports RF R2 values between approximately 0.877 and 0.978 for most weather groups, with stronger performance on Duststorm and Rain subsets in the recorded experiments.
+
+## Technical Notes
+
+- Most notebooks currently use random train/test splitting with a fixed `random_state`.
+- For a stricter time-dependent evaluation, a future improvement would be to split the 18-month dataset chronologically or use a time-series validation strategy.
+- For cascade/stacking-style experiments, an out-of-fold prediction setup would reduce the risk of overly optimistic second-stage model evaluation.
+- The raw dataset is excluded from version control because of file size and data-sharing constraints.
+
+## Installation
+
+```bash
+pip install -r requirements.txt
+```
 
 ## How to Run
 
-1. Clone the repository:
+1. Place `RFLFSODataFull.csv` in the repository root.
+2. Install the dependencies:
 
 ```bash
-git clone https://github.com/fashaolea/a1904280-UNIADL-PROJ-MDS.git
-cd a1904280-UNIADL-PROJ-MDS
+pip install -r requirements.txt
 ```
 
-2. Put `RFLFSODataFull.csv` into the project folder.
-
-3. Install the main packages:
-
-```bash
-pip install pandas numpy scikit-learn scipy matplotlib seaborn jupyter
-```
-
-4. Start Jupyter Notebook:
+3. Start Jupyter from the project root so the notebooks can find `RFLFSODataFull.csv`:
 
 ```bash
 jupyter notebook
 ```
 
-5. Open the notebooks. The rough order of the project is:
+4. Run the notebooks in this order:
 
 ```text
-code.ipynb
-code2.ipynb
-generic model revised edition.ipynb
-code3.ipynb
+notebooks/01_data_exploration_and_generic_model.ipynb
+notebooks/02_feature_selection_and_weather_models.ipynb
+notebooks/03_revised_generic_rf_model.ipynb
+notebooks/04_cascade_rf_fso_model.ipynb
 ```
 
-## Notes
+The `src/` directory contains reusable helper modules for preprocessing, feature selection, training, and evaluation. These modules can be used to turn the notebook workflow into a script-based experiment pipeline.
 
-- The notebooks show the project process from early experiments to the final version.
-- Some notebook outputs may look messy if the encoding is different, especially for older comments or printed text.
-- Results may change slightly depending on package versions and random forest settings.
-- This was developed as part of my University of Adelaide MDS project coursework.
+## Resume-Friendly Summary
+
+Built a weather-aware attenuation prediction system for hybrid FSO/RF communication links using measured weather-channel data. Implemented Random Forest regression, feature selection, weather-specific modelling, hyperparameter tuning, cascade RF/FSO prediction, and evaluation with RMSE, R-squared, Pearson correlation, mutual information, and 2D density heatmaps.
