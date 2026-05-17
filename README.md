@@ -1,4 +1,4 @@
-# Weather-Aware Attenuation Modelling for Hybrid FSO/RF Links
+# Weather-Aware RF/FSO Link Attenuation Prediction
 
 This project models signal attenuation in hybrid Free-Space Optical (FSO) and Radio Frequency (RF) communication links under different weather conditions. It uses measured weather and channel data to predict `FSO_Att` and `RFL_Att`, then compares generic, weather-specific, and cascade modelling strategies.
 
@@ -148,4 +148,4 @@ The `src/` directory contains reusable helper modules for preprocessing, feature
 
 ## Resume-Friendly Summary
 
-Built a weather-aware attenuation prediction system for hybrid FSO/RF communication links using measured weather-channel data. Implemented Random Forest regression, feature selection, weather-specific modelling, hyperparameter tuning, cascade RF/FSO prediction, and evaluation with RMSE, R-squared, Pearson correlation, mutual information, and 2D density heatmaps.
+Built a weather-aware RF/FSO link attenuation prediction system using measured weather-channel data. Implemented Random Forest regression, feature selection, weather-specific modelling, hyperparameter tuning, cascade RF/FSO prediction, and evaluation with RMSE, R-squared, Pearson correlation, mutual information, and 2D density heatmaps.
